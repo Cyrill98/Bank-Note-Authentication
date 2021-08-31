@@ -1,32 +1,67 @@
-from flask import Flask, request
 import pandas as pd
 import numpy as np
 import pickle
+import streamlit as st
+from PIL import Image
 
-app = Flask(__name__)
 pickle_in = open('classifier.pkl', 'rb')
 classifier = pickle.load(pickle_in)
 
-@app.route('/')
+
 def welcome():
     return "Welcome All"
 
-@app.route('/predict')
-def predict_note_authentication():
-    variance = request.args.get('variance')
-    skewness = request.args.get('skewness')
-    curtosis = request.args.get('curtosis')
-    entropy = request.args.get('entropy')
 
+def predict_note_authentication(variance, skewness, curtosis, entropy):
+    """Let's Authenticate the Banks Note
+        This is using docstrings for specifications.
+        ---
+        parameters:
+          - name: variance
+            in: query
+            type: number
+            required: true
+          - name: skewness
+            in: query
+            type: number
+            required: true
+          - name: curtosis
+            in: query
+            type: number
+            required: true
+          - name: entropy
+            in: query
+            type: number
+            required: true
+        responses:
+            200:
+                description: The output values
+    """
     prediction = classifier.predict([[variance, skewness, curtosis, entropy]])
-    return "The predicted values is " + str(prediction)
+    print(prediction)
+    return prediction
 
-@app.route('/predict_file', methods = ["POST"])
-def predict_note_file():
-    df_test = pd.read_csv(request.files.get("file"))
-    prediction = classifier.predict(df_test)
-    return "The predicted values is " + str(list(prediction))
+
+def main():
+    st.title("Bank Note Authentication")
+    html_temp = """"
+    <div style = "background-color: tomato;padding:10px">
+    <h2 style = "color: white;text-align:center">Streamlit Bank Authentication App </h2>
+    </div>
+    """
+    st.markdown(html_temp, unsafe_allow_html=True)
+    variance = st.text_input('variance')
+    skewness = st.text_input('skewness')
+    curtosis = st.text_input('curtosis')
+    entropy = st.text_input('entropy')
+    result = ""
+    if st.button("Predict"):
+        result=predict_note_authentication(variance,skewness,curtosis,entropy)
+    st.success('The output is {}'.format(result))
+    if st.button("About"):
+        st.text("Lets Learn")
+        st.text("Built with Streamlit")
+
 
 if __name__ == '__main__':
-    app.run()
-
+    main()
